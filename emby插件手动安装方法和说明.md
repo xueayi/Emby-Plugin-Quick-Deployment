@@ -139,50 +139,66 @@ if [ ! -d "$UI_DIR" ]; then
 fi
 cd "$UI_DIR" || exit
 
+# 一键安装集成脚本 (推荐)
+
+如果你想通过菜单选择性安装插件（美化、弹幕、外部播放器），可以使用以下脚本（V2.2 稳定版）：
+
+```bash
+#!/bin/sh
+# 1. 环境校验
+UI_DIR="/system/dashboard-ui"
+if [ ! -d "$UI_DIR" ]; then
+    echo -e "错误: 未找到 Emby UI 目录 ($UI_DIR)。"
+    exit 1
+fi
+cd "$UI_DIR" || exit
+
 # 2. 交互选择
-echo -e "请选择安装项: 1.全部 2.美化 3.弹幕 4.外部播放器 U.卸载所有"
-read -p "选择: " choices
+echo -e "选择: 1.全部 2.美化 3.弹幕 4.外部播放器 U.卸载 Q.退出"
+read -p "选项: " choices
 
 # 处理卸载
 if [ "$choices" = "U" ] || [ "$choices" = "u" ]; then
-    sed -i '/<!-- Emby Plugins Start -->/,/<!-- Emby Plugins End -->/d' index.html
-    sed -i 's|<link[^>]*emby-crx/[^>]*>||g; s|<script[^>]*emby-crx/[^>]*></script>||g; s|<script[^>]*dd-danmaku/[^>]*></script>||g; s|<script[^>]*externalPlayer\.js[^>]*></script>||g' index.html
+    sed -i '/emby-crx/d; /dd-danmaku/d; /externalPlayer.js/d; /Emby Plugins/d' index.html
     rm -rf emby-crx dd-danmaku externalPlayer.js
-    echo "插件已完全卸载。"
+    echo "插件已干净卸载。如网页异常，请手动执行 mv index.html.bak index.html"
     exit 0
 fi
 
+# 3. 处理安装逻辑 (多项选择)
 INSTALL_CRX=false; INSTALL_DANMAKU=false; INSTALL_PLAYER=false
-for c in $choices; do
-    [ "$c" = "1" ] && { INSTALL_CRX=true; INSTALL_DANMAKU=true; INSTALL_PLAYER=true; }
-    [ "$c" = "2" ] && INSTALL_CRX=true
-    [ "$c" = "3" ] && INSTALL_DANMAKU=true
-    [ "$c" = "4" ] && INSTALL_PLAYER=true
-done
+echo "$choices" | grep -q "1" && { INSTALL_CRX=true; INSTALL_DANMAKU=true; INSTALL_PLAYER=true; }
+echo "$choices" | grep -q "2" && INSTALL_CRX=true
+echo "$choices" | grep -q "3" && INSTALL_DANMAKU=true
+echo "$choices" | grep -q "4" && INSTALL_PLAYER=true
 
-# 3. 备份与清理
+# 4. 备份与清理
 [ ! -f index.html.bak ] && cp index.html index.html.bak
-sed -i '/<!-- Emby Plugins Start -->/,/<!-- Emby Plugins End -->/d' index.html
-sed -i 's|<link[^>]*emby-crx/[^>]*>||g; s|<script[^>]*emby-crx/[^>]*></script>||g; s|<script[^>]*dd-danmaku/[^>]*></script>||g; s|<script[^>]*externalPlayer\.js[^>]*></script>||g' index.html
+sed -i '/emby-crx/d; /dd-danmaku/d; /externalPlayer.js/d; /Emby Plugins/d' index.html
 
-# 4. 下载与注入
-HEAD_CODE='<!-- Emby Plugins Start -->'
-[ "$INSTALL_CRX" = true ] && {
+# 5. 下载并安全注入 (分步注入以提高兼容性)
+if [ "$INSTALL_CRX" = true ]; then
+    rm -rf emby-crx && mkdir -p emby-crx
     wget -q https://raw.githubusercontent.com/Nolovenodie/emby-crx/master/static/css/style.css -P emby-crx/
-    # ... (此处省略其他 wget 命令，请参考 install_plugins.sh)
-    HEAD_CODE="${HEAD_CODE}\n<link rel=\"stylesheet\" href=\"emby-crx/style.css\" />\n<script src=\"emby-crx/main.js\"></script>"
-}
-[ "$INSTALL_DANMAKU" = true ] && {
-    wget -q https://raw.githubusercontent.com/chen3861229/dd-danmaku/refs/heads/main/ede.js -P dd-danmaku/
-    HEAD_CODE="${HEAD_CODE}\n<script src=\"dd-danmaku/ede.js\"></script>"
-}
-sed -i "s|</head>|$HEAD_CODE\n</head>|" index.html
+    # ... (省略其他下载命令)
+    sed -i '/<\/head>/i <!-- Emby Plugins Start -->' index.html
+    sed -i '/<\/head>/i <link rel="stylesheet" href="emby-crx/style.css" />' index.html
+    sed -i '/<\/head>/i <script src="emby-crx/main.js"></script>' index.html
+fi
 
-[ "$INSTALL_PLAYER" = true ] && {
+if [ "$INSTALL_DANMAKU" = true ]; then
+    wget -q https://raw.githubusercontent.com/chen3861229/dd-danmaku/refs/heads/main/ede.js -P dd-danmaku/
+    sed -i '/<\/head>/i <script src="dd-danmaku/ede.js"></script>' index.html
+fi
+
+if [ "$INSTALL_PLAYER" = true ]; then
     wget -q https://raw.githubusercontent.com/bpking1/embyExternalUrl/refs/heads/main/embyWebAddExternalUrl/embyLaunchPotplayer.js -O externalPlayer.js
-    sed -i "/apploader.js/a <script src=\"externalPlayer.js\" defer></script>" index.html
-}
-echo -e "\n<!-- Emby Plugins End -->" >> index.html # 逻辑简化示意
+    sed -i '/apploader.js/a <script src="externalPlayer.js" defer></script>' index.html
+fi
+sed -i '/<\/body>/i <!-- Emby Plugins End -->' index.html
+
+echo "操作完成！"
+```
 ```
 
 > [!TIP]
