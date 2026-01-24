@@ -170,14 +170,20 @@ echo '<!-- Emby Plugins End -->' >> "$BODY_INJECT_FILE"
 
 # 使用 awk 进行注入（BusyBox/Alpine 完全兼容）
 # 在 </head> 前插入 HEAD_INJECT_FILE 的内容
-awk -v inject="$(cat "$HEAD_INJECT_FILE")" '
-    /<\/head>/ { print inject }
+awk -v injectfile="$HEAD_INJECT_FILE" '
+    /<\/head>/ {
+        while ((getline line < injectfile) > 0) print line
+        close(injectfile)
+    }
     { print }
 ' index.html > index.html.tmp && mv index.html.tmp index.html
 
 # 在 </body> 前插入 BODY_INJECT_FILE 的内容
-awk -v inject="$(cat "$BODY_INJECT_FILE")" '
-    /<\/body>/ { print inject }
+awk -v injectfile="$BODY_INJECT_FILE" '
+    /<\/body>/ {
+        while ((getline line < injectfile) > 0) print line
+        close(injectfile)
+    }
     { print }
 ' index.html > index.html.tmp && mv index.html.tmp index.html
 
