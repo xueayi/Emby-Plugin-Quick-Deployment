@@ -1,8 +1,8 @@
 #!/bin/sh
 
 # ==============================================================================
-# Emby 插件一键安装脚本 (V1.0)
-# 功能：集成美化插件、弹幕插件、MPV/Potplayer 调用插件
+# Emby 插件全功能安装脚本 (V2.1)
+# 功能：安装(组件化选择)、卸载、备份安全、幂等清理
 # ==============================================================================
 
 # 颜色定义
@@ -11,92 +11,125 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${YELLOW}开始安装 Emby 插件...${NC}"
+echo -e "${YELLOW}==============================================${NC}"
+echo -e "${GREEN}      Emby 插件安装与管理程序 (V2.1)${NC}"
+echo -e "${YELLOW}==============================================${NC}"
 
 # 1. 环境校验
 UI_DIR="/system/dashboard-ui"
 if [ ! -d "$UI_DIR" ]; then
-    echo -e "${RED}错误: 未找到 Emby UI 目录 ($UI_DIR)。请确保脚本在 Emby 服务器上运行或检查路径配置是否正确。${NC}"
+    echo -e "${RED}错误: 未找到 Emby UI 目录 ($UI_DIR)。${NC}"
+    echo -e "请确认路径或参考手动安装指南。"
     exit 1
 fi
 
 cd "$UI_DIR" || exit
 
-# 2. 安装美化插件 (emby-crx)
-echo -e "${GREEN}正在安装美化插件 (emby-crx)...${NC}"
-rm -rf emby-crx
-mkdir -p emby-crx
-wget -q https://raw.githubusercontent.com/Nolovenodie/emby-crx/master/static/css/style.css -P emby-crx/
-wget -q https://raw.githubusercontent.com/Nolovenodie/emby-crx/master/static/js/common-utils.js -P emby-crx/
-wget -q https://raw.githubusercontent.com/Nolovenodie/emby-crx/master/static/js/jquery-3.6.0.min.js -P emby-crx/
-wget -q https://raw.githubusercontent.com/Nolovenodie/emby-crx/master/static/js/md5.min.js -P emby-crx/
-wget -q https://raw.githubusercontent.com/Nolovenodie/emby-crx/master/content/main.js -P emby-crx/
+# 2. 交互式主菜单
+echo -e "请选择操作:"
+echo -e "  ${GREEN}[1] 安装全部 (美化 + 弹幕 + 外部播放器)${NC}"
+echo -e "  [2] 界面美化插件 (emby-crx)"
+echo -e "  [3] 弹幕增强插件 (dd-danmaku)"
+echo -e "  [4] 外部播放器插件 (PotPlayer/MPV)"
+echo -e "  ${RED}[U] 卸载所有插件并还原环境${NC}"
+echo -e "  [Q] 退出"
+read -p "您的选择: " main_choice
 
-# 3. 安装弹幕插件 (dd-danmaku)
-echo -e "${GREEN}正在安装弹幕插件 (dd-danmaku)...${NC}"
-rm -rf dd-danmaku
-mkdir -p dd-danmaku
-wget -q https://raw.githubusercontent.com/chen3861229/dd-danmaku/refs/heads/main/ede.js -P dd-danmaku/
+# 处理卸载逻辑
+if [ "$main_choice" = "U" ] || [ "$main_choice" = "u" ]; then
+    echo -e "${YELLOW}正在执行卸载程序...${NC}"
+    
+    # 清理 index.html 注入
+    sed -i '/<!-- Emby Plugins Start -->/,/<!-- Emby Plugins End -->/d' index.html
+    sed -i 's|<link[^>]*emby-crx/[^>]*>||g; s|<script[^>]*emby-crx/[^>]*></script>||g; s|<script[^>]*dd-danmaku/[^>]*></script>||g; s|<script[^>]*externalPlayer\.js[^>]*></script>||g' index.html
+    
+    # 删除插件物理文件
+    rm -rf emby-crx
+    rm -rf dd-danmaku
+    rm -f externalPlayer.js
+    
+    echo -e "${GREEN}卸载完成！${NC} 插件文件已删除，index.html 已清理。"
+    echo -e "${YELLOW}注意：备份文件 index.html.bak 未删除，您可以手动执行 'mv index.html.bak index.html' 完全还原状态。${NC}"
+    exit 0
+fi
 
-# 4. 安装外部播放器插件 (MPV/Potplayer)
-echo -e "${GREEN}正在配置外部播放器插件 (externalPlayer)...${NC}"
-# 直接下载脚本文件
-wget -q https://raw.githubusercontent.com/bpking1/embyExternalUrl/refs/heads/main/embyWebAddExternalUrl/embyLaunchPotplayer.js -O externalPlayer.js
+# 处理安装选项
+INSTALL_CRX=false; INSTALL_DANMAKU=false; INSTALL_PLAYER=false
+for choice in $main_choice; do
+    case $choice in
+        1) INSTALL_CRX=true; INSTALL_DANMAKU=true; INSTALL_PLAYER=true ;;
+        2) INSTALL_CRX=true ;;
+        3) INSTALL_DANMAKU=true ;;
+        4) INSTALL_PLAYER=true ;;
+        [Qq]) echo "退出。"; exit 0 ;;
+    esac
+done
 
-# 5. 修改 index.html (注入代码)
-echo -e "${GREEN}正在修改 index.html...${NC}"
+if [ "$INSTALL_CRX" = false ] && [ "$INSTALL_DANMAKU" = false ] && [ "$INSTALL_PLAYER" = false ]; then
+    echo -e "${RED}输入无效，退出安装。${NC}"
+    exit 1
+fi
 
-# 检查 index.html 备份
+# 3. 备份 index.html
 if [ -f "index.html.bak" ]; then
-    echo -e "${YELLOW}检测到备份文件 index.html.bak 已存在。请选择操作：${NC}"
-    echo -e "  [O] Overwrite (覆盖备份)"
-    echo -e "  [C] Continue (不覆盖备份，仅执行安装)"
-    echo -e "  [Q] Quit (退出脚本)"
-    read -p "您的选择 [O/C/Q]: " action
-    case $action in
-        [Oo] ) 
-            cp index.html index.html.bak
-            echo "已覆盖现有备份。" ;;
-        [Cc] ) 
-            echo "正在使用现有备份继续安装..." ;;
-        [Qq] ) 
-            echo "退出安装。"
-            exit 0 ;;
-        * ) 
-            echo -e "${RED}无效输入，退出安装。${NC}"
-            exit 1 ;;
+    echo -e "${YELLOW}检测到备份文件 index.html.bak 已存在。请选择：${NC}"
+    echo -e "  [O] Overwrite (覆盖现有备份)"
+    echo -e "  [C] Continue (保留现有备份继续)"
+    echo -e "  [Q] Quit (退出)"
+    read -p "选择 [O/C/Q]: " back_opt
+    case $back_opt in
+        [Oo]) cp index.html index.html.bak; echo "备份已更新。" ;;
+        [Qq]) exit 0 ;;
     esac
 else
     cp index.html index.html.bak
     echo "已创建 index.html 备份。"
 fi
 
-# 移除旧的注入，确保幂等性
-# 1. 移除带注释标记的区块 (推荐方式)
+# 4. 下载资源
+[ "$INSTALL_CRX" = true ] && { 
+    echo -e "${GREEN}下载美化插件...${NC}"
+    rm -rf emby-crx && mkdir -p emby-crx
+    wget -q https://raw.githubusercontent.com/Nolovenodie/emby-crx/master/static/css/style.css -P emby-crx/
+    wget -q https://raw.githubusercontent.com/Nolovenodie/emby-crx/master/static/js/common-utils.js -P emby-crx/
+    wget -q https://raw.githubusercontent.com/Nolovenodie/emby-crx/master/static/js/jquery-3.6.0.min.js -P emby-crx/
+    wget -q https://raw.githubusercontent.com/Nolovenodie/emby-crx/master/static/js/md5.min.js -P emby-crx/
+    wget -q https://raw.githubusercontent.com/Nolovenodie/emby-crx/master/content/main.js -P emby-crx/
+}
+
+[ "$INSTALL_DANMAKU" = true ] && {
+    echo -e "${GREEN}下载弹幕插件...${NC}"
+    rm -rf dd-danmaku && mkdir -p dd-danmaku
+    wget -q https://raw.githubusercontent.com/chen3861229/dd-danmaku/refs/heads/main/ede.js -P dd-danmaku/
+}
+
+[ "$INSTALL_PLAYER" = true ] && {
+    echo -e "${GREEN}下载播放器脚本...${NC}"
+    wget -q https://raw.githubusercontent.com/bpking1/embyExternalUrl/refs/heads/main/embyWebAddExternalUrl/embyLaunchPotplayer.js -O externalPlayer.js
+}
+
+# 5. 注入 index.html
+echo -e "${GREEN}应用注入到 index.html...${NC}"
+
+# 清理旧引用
 sed -i '/<!-- Emby Plugins Start -->/,/<!-- Emby Plugins End -->/d' index.html
-# 2. 移除可能存在的“裸”标签 (兼容旧脚本或手动注入)
-sed -i 's|<link[^>]*emby-crx/[^>]*>||g' index.html
-sed -i 's|<script[^>]*emby-crx/[^>]*></script>||g' index.html
-sed -i 's|<script[^>]*dd-danmaku/[^>]*></script>||g' index.html
-sed -i 's|<script[^>]*externalPlayer\.js[^>]*></script>||g' index.html
+sed -i 's|<link[^>]*emby-crx/[^>]*>||g; s|<script[^>]*emby-crx/[^>]*></script>||g; s|<script[^>]*dd-danmaku/[^>]*></script>||g; s|<script[^>]*externalPlayer\.js[^>]*></script>||g' index.html
 
-# 定义头部注入
-HEAD_CODE='<!-- Emby Plugins Start -->\n<link rel="stylesheet" id="theme-css" href="emby-crx/style.css" type="text/css" media="all" />\n<script src="emby-crx/common-utils.js"></script>\n<script src="emby-crx/jquery-3.6.0.min.js"></script>\n<script src="emby-crx/md5.min.js"></script>\n<script src="emby-crx/main.js"></script>\n<script src="dd-danmaku/ede.js"></script>'
+# 构建 HEAD 注入
+H_CODE='<!-- Emby Plugins Start -->'
+[ "$INSTALL_CRX" = true ] && H_CODE="${H_CODE}\n<link rel=\"stylesheet\" href=\"emby-crx/style.css\" />\n<script src=\"emby-crx/main.js\"></script>"
+[ "$INSTALL_DANMAKU" = true ] && H_CODE="${H_CODE}\n<script src=\"dd-danmaku/ede.js\"></script>"
+sed -i "s|</head>|$H_CODE\n</head>|" index.html
 
-# 插入到 </head> 之前
-sed -i "s|</head>|$HEAD_CODE\n</head>|" index.html
+# 构建 BODY 注入
+B_CODE=""
+[ "$INSTALL_PLAYER" = true ] && B_CODE='<script src="externalPlayer.js" defer></script>'
+B_CODE="${B_CODE}\n<!-- Emby Plugins End -->"
 
-# 定义尾部注入 (在 apploader.js 之后)
-BODY_CODE='<script src="externalPlayer.js" defer></script>\n<!-- Emby Plugins End -->'
-
-# 检查是否存在 apploader.js 标签，在其下方插入；否则在 </body> 前插入
 if grep -q "apploader.js" index.html; then
-    sed -i "/apploader.js/a $BODY_CODE" index.html
+    sed -i "/apploader.js/a $B_CODE" index.html
 else
-    sed -i "s|</body>|$BODY_CODE\n</body>|" index.html
+    sed -i "s|</body>|$B_CODE\n</body>|" index.html
 fi
 
-echo -e "${YELLOW}==============================================${NC}"
-echo -e "${GREEN}安装完成！${NC}"
-echo -e "${YELLOW}请刷新 Emby 网页端查看效果。${NC}"
-echo -e "${YELLOW}==============================================${NC}"
+echo -e "${GREEN}安装完成！${NC} 选定组件已生效。"

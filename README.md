@@ -19,6 +19,7 @@
    * 修改脚本中的 `UI_DIR` 路径（默认为 `/system/dashboard-ui`）。
    * 执行脚本：`chmod +x install_plugins.sh && ./install_plugins.sh`
 2. 刷新 Emby 网页端即可看到效果。
+3. 如果您不想安装全部插件，可以参考[emby插件手动安装方法和说明.md](emby插件手动安装方法和说明.md)
 
 > [!IMPORTANT]
 > **外部播放器正常使用的三个核心条件：**
