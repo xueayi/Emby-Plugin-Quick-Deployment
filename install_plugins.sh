@@ -36,6 +36,10 @@ read -p "您的选择: " main_choice
 
 # --- 卸载逻辑 (移动到这里以确保优先处理) ---
 do_uninstall() {
+    # 卸载前创建安全备份
+    echo -e "${YELLOW}正在创建卸载前备份 (index.html.uninstall_bak)...${NC}"
+    cp index.html index.html.uninstall_bak
+    
     echo -e "${YELLOW}正在清理 index.html 注入内容...${NC}"
     # 精准移除相关行，不再依赖起始/结尾标签，防止误删核心内容
     sed -i '/emby-crx/d' index.html
@@ -48,7 +52,9 @@ do_uninstall() {
     rm -f externalPlayer.js
     
     echo -e "${GREEN}卸载完成！${NC}"
-    echo -e "${YELLOW}提示：如果网页仍无法打开，请执行 'mv index.html.bak index.html' 还原备份。${NC}"
+    echo -e "${YELLOW}提示：如果网页仍无法打开，请执行以下命令还原：${NC}"
+    echo -e "  ${GREEN}mv index.html.uninstall_bak index.html${NC} (恢复到卸载前)"
+    echo -e "  ${GREEN}mv index.html.bak index.html${NC} (恢复到首次安装前)"
 }
 
 if [ "$main_choice" = "U" ] || [ "$main_choice" = "u" ]; then
@@ -115,8 +121,10 @@ sed -i '/externalPlayer.js/d' index.html
 sed -i '/Emby Plugins/d' index.html
 
 # 在 </head> 之前分步注入，不使用 \n 变量以提高兼容性
+# 首先添加开始标记（所有安装选项共用）
+sed -i '/<\/head>/i <!-- Emby Plugins Start -->' index.html
+
 [ "$INSTALL_CRX" = true ] && {
-    sed -i '/<\/head>/i <!-- Emby Plugins Start -->' index.html
     sed -i '/<\/head>/i <link rel="stylesheet" id="theme-css" href="emby-crx/style.css" type="text/css" media="all" />' index.html
     sed -i '/<\/head>/i <script src="emby-crx/common-utils.js"></script>' index.html
     sed -i '/<\/head>/i <script src="emby-crx/jquery-3.6.0.min.js"></script>' index.html
