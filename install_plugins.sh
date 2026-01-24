@@ -142,29 +142,46 @@ sed -i '/dd-danmaku/d' index.html
 sed -i '/externalPlayer.js/d' index.html
 sed -i '/Emby Plugins/d' index.html
 
-# 使用 sed 替换方式注入（与手动安装文档一致的验证过的方法）
+# 使用 awk ENVIRON 方式注入（可靠处理多行内容）
 # 读取整个文件到变量
 CONTENT=$(cat index.html)
 
 # 构建 </head> 前要插入的代码
 HEAD_CODE='<!-- Emby Plugins Start -->'
-[ "$INSTALL_CRX" = true ] && HEAD_CODE="${HEAD_CODE}
+if [ "$INSTALL_CRX" = true ]; then
+    HEAD_CODE="${HEAD_CODE}
 <link rel=\"stylesheet\" id=\"theme-css\" href=\"emby-crx/style.css\" type=\"text/css\" media=\"all\" />
 <script src=\"emby-crx/common-utils.js\"></script>
 <script src=\"emby-crx/jquery-3.6.0.min.js\"></script>
 <script src=\"emby-crx/md5.min.js\"></script>
 <script src=\"emby-crx/main.js\"></script>"
-[ "$INSTALL_DANMAKU" = true ] && HEAD_CODE="${HEAD_CODE}
+fi
+if [ "$INSTALL_DANMAKU" = true ]; then
+    HEAD_CODE="${HEAD_CODE}
 <script src=\"dd-danmaku/ede.js\"></script>"
+fi
 
 # 构建 </body> 前要插入的代码
 BODY_CODE=""
-[ "$INSTALL_PLAYER" = true ] && BODY_CODE='<script src="externalPlayer.js" defer></script>'
+if [ "$INSTALL_PLAYER" = true ]; then
+    BODY_CODE='<script src="externalPlayer.js" defer></script>'
+fi
 BODY_CODE="${BODY_CODE}
 <!-- Emby Plugins End -->"
 
-# 替换并写回（使用 sed 管道处理，兼容所有环境）
-echo "$CONTENT" | sed "s|</head>|${HEAD_CODE}</head>|" | sed "s|</body>|${BODY_CODE}</body>|" > index.html
+# 导出为环境变量，awk 通过 ENVIRON 读取（可靠处理多行）
+export HEAD_CODE BODY_CODE
+echo "$CONTENT" | awk '
+{
+    if (/<\/head>/) {
+        sub(/<\/head>/, ENVIRON["HEAD_CODE"] "\n</head>")
+    }
+    if (/<\/body>/) {
+        sub(/<\/body>/, ENVIRON["BODY_CODE"] "\n</body>")
+    }
+    print
+}
+' > index.html
 
 echo -e "${GREEN}注入完成！${NC}"
 
