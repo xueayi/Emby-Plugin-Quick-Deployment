@@ -663,7 +663,9 @@ show_banner() {
 EOF
     printf "${NC}"
     echo "        Emby 插件管理脚本 v${VERSION}"
-    echo "=========================================="
+    echo "        作者:xueayi"
+    echo "        项目地址:https://github.com/xueayi/Emby-Plugin-Quick-Deployment"
+    echo "======================================================================="
 }
 
 # 主菜单
