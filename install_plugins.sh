@@ -11,7 +11,7 @@
 # ========================== 全局配置 ==========================
 
 # 默认路径
-VERSION="1.1.0"
+VERSION="1.1.1"
 UI_DIR="/system/dashboard-ui"
 BACKUP_DIR="/system/dashboard-ui/.plugin_backups"
 MAX_BACKUPS=5
@@ -188,11 +188,6 @@ get_release_download_url() {
     local pattern="$2"
     local dl_cmd=$(get_download_cmd)
     local api_url="${GITHUB_API}/repos/${repo}/releases/latest"
-    
-    # 应用镜像源
-    if [ "$CURRENT_SOURCE" = "mirror" ]; then
-        api_url="${MIRROR_GHPROXY}/${api_url}"
-    fi
     
     log "INFO" "获取 Release 信息: $api_url"
     
