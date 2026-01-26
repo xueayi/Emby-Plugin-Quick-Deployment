@@ -389,15 +389,24 @@ install_plugin() {
     
     case "$plugin_id" in
         crx)
-            # 界面美化插件 - 注入到 </head> 前
+            # 界面美化插件 - 注入到 </style> 后 (Emby 的 index.html 没有 </head> 标签)
             log "DEBUG" "注入 emby-crx 代码..."
-            # 使用 sed 单行替换（所有代码放一行）
-            sed -i 's|</head>|<!-- emby-crx start --><link rel="stylesheet" href="emby-crx/style.css" type="text/css" /><script src="emby-crx/jquery-3.6.0.min.js"></script><script src="emby-crx/md5.min.js"></script><script src="emby-crx/common-utils.js"></script><script src="emby-crx/main.js"></script><!-- emby-crx end --></head>|' "$index_path"
+            if grep -q "</head>" "$index_path"; then
+                sed -i 's|</head>|<!-- emby-crx start --><link rel="stylesheet" href="emby-crx/style.css" type="text/css" /><script src="emby-crx/jquery-3.6.0.min.js"></script><script src="emby-crx/md5.min.js"></script><script src="emby-crx/common-utils.js"></script><script src="emby-crx/main.js"></script><!-- emby-crx end --></head>|' "$index_path"
+            else
+                # Emby 特殊处理：在最后一个 </style> 后插入
+                sed -i '/<\/style>/,/<body/{s/<body/<!-- emby-crx start --><link rel="stylesheet" href="emby-crx\/style.css" type="text\/css" \/><script src="emby-crx\/jquery-3.6.0.min.js"><\/script><script src="emby-crx\/md5.min.js"><\/script><script src="emby-crx\/common-utils.js"><\/script><script src="emby-crx\/main.js"><\/script><!-- emby-crx end -->\n<body/}' "$index_path"
+            fi
             ;;
         danmaku)
-            # 弹幕插件 - 注入到 </head> 前
+            # 弹幕插件 - 同上
             log "DEBUG" "注入 dd-danmaku 代码..."
-            sed -i 's|</head>|<!-- dd-danmaku start --><script src="dd-danmaku/ede.js"></script><!-- dd-danmaku end --></head>|' "$index_path"
+            if grep -q "</head>" "$index_path"; then
+                sed -i 's|</head>|<!-- dd-danmaku start --><script src="dd-danmaku/ede.js"></script><!-- dd-danmaku end --></head>|' "$index_path"
+            else
+                # Emby 特殊处理：在 <body 前插入
+                sed -i 's|<body|<!-- dd-danmaku start --><script src="dd-danmaku/ede.js"></script><!-- dd-danmaku end -->\n<body|' "$index_path"
+            fi
             ;;
         player)
             # 外部播放器 - 注入到 apploader.js 后或 </body> 前
