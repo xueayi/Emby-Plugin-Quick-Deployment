@@ -12,11 +12,12 @@
 #### 安装步骤：
 1. **一键执行**:
 - 默认在emby docker根目录路径下执行（默认index.html在docker中的绝对路径是`/system/dashboard-ui`），如需设置其他路径下的安装，请参考下方手动部署进行安装。
-- 安装后刷新 Emby 网页端即可看到效果。
 
    ```bash
    wget -q https://raw.githubusercontent.com/xueayi/Emby-Plugin-Quick-Deployment/refs/heads/master/install_plugins.sh -O install_plugins.sh && chmod +x install_plugins.sh && ./install_plugins.sh
    ```
+   
+- 安装后刷新 Emby 网页端即可看到效果。
 
 1. **更改脚本执行目录**:
    * 将 `install_plugins.sh` 上传到 Emby 服务器。
