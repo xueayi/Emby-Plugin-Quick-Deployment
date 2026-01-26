@@ -29,14 +29,17 @@ graph TB
     subgraph 核心层
         C[工具函数] --> D[环境检测]
         D --> E[备份系统]
-        E --> F[下载引擎]
-        F --> G[安装/卸载引擎]
+        E --> F1[Web 下载引擎]
+        E --> F2[DLL 下载引擎]
+        F1 --> G1[Web 注入逻辑]
+        F2 --> G2[DLL 部署逻辑]
     end
     
     subgraph 交互层
         H[主菜单] --> I[安装菜单]
         H --> J[卸载菜单]
         H --> K[备份菜单]
+        H --> K2[路径配置]
     end
     
     subgraph 入口层
@@ -50,14 +53,14 @@ graph TB
 
 | 区块 | 说明 |
 |------|------|
-| 全局配置 | 版本、路径、颜色代码等 |
-| 插件定义 | 各插件的配置变量 |
-| 工具函数 | 日志、输出、下载等通用函数 |
-| 环境检测 | 检查目录、权限、依赖 |
-| 备份系统 | 创建、列出、恢复备份 |
-| 插件操作 | 安装、卸载核心逻辑 |
-| 交互菜单 | 用户界面与输入处理 |
-| 命令行参数 | 非交互式选项支持 |
+| 全局配置 | 版本、路径、颜色代码、DLL 插件路径等 |
+| 插件定义 | 各插件的配置变量，分为 `web` 和 `dll` 类型 |
+| 工具函数 | 日志、输出、普通下载、**GitHub Release 链接解析**等 |
+| 环境检测 | 检查 UI 目录、插件目录、权限、依赖 |
+| 备份系统 | 创建、列出、恢复 Web UI 备份 |
+| 插件操作 | **分发器逻辑**，分别处理 Web 注入和 DLL 部署 |
+| 交互菜单 | 用户界面与输入处理，包含路径实时配置 |
+| 命令行参数 | 非交互式选项支持，新增针对 DLL 的参数 |
 
 ---
 
@@ -65,32 +68,39 @@ graph TB
 
 ### 步骤 1: 定义插件变量
 
-在 **插件定义** 区块添加新插件配置：
+根据插件类型选择对应的模板：
 
+#### A. Web 端插件 (修改 index.html)
 ```sh
-# --- 插件N: 新插件名称 ---
-PLUGIN_NEWPLUGIN_ID="newplugin"           # 唯一标识 (小写)
-PLUGIN_NEWPLUGIN_NAME="新插件名称"         # 显示名称
-PLUGIN_NEWPLUGIN_DESC="插件功能描述"       # 简短描述
-PLUGIN_NEWPLUGIN_DIR="new-plugin"          # 存放目录 (空=单文件)
-PLUGIN_NEWPLUGIN_PROJECT="https://github.com/xxx/xxx"  # 项目地址
-PLUGIN_NEWPLUGIN_FILES="path/to/file1.js path/to/file2.css"  # 相对于仓库根的文件路径
-PLUGIN_NEWPLUGIN_BASE_PATH="owner/repo/branch"  # GitHub 路径前缀
-PLUGIN_NEWPLUGIN_INJECT_HEAD='<script src="new-plugin/file1.js"></script>'  # 注入到 </head> 前
-PLUGIN_NEWPLUGIN_INJECT_BODY=''             # 注入到 </body> 前 (可选)
-PLUGIN_NEWPLUGIN_MARKER="new-plugin"        # HTML 标记 (用于检测/清理)
+PLUGIN_NAME_ID="id"
+PLUGIN_NAME_TYPE="web"
+PLUGIN_NAME_NAME="显示名称"
+PLUGIN_NAME_DESC="描述"
+PLUGIN_NAME_DIR="dir-name"
+PLUGIN_NAME_FILES="file.js"
+PLUGIN_NAME_BASE_PATH="owner/repo/branch"
+PLUGIN_NAME_MARKER="marker-string"
+```
+
+#### B. 服务器端插件 (DLL)
+```sh
+PLUGIN_NAME_ID="id"
+PLUGIN_NAME_TYPE="dll"
+PLUGIN_NAME_NAME="显示名称"
+PLUGIN_NAME_DESC="描述"
+PLUGIN_NAME_RELEASE_API="owner/repo"        # 用于检测最新 Release
+PLUGIN_NAME_DLL_PATTERN="match-string.dll"   # 下载链接中 DLL 文件的匹配词
+PLUGIN_NAME_MARKER="match-string"            # 用于安装检测的关键词
 ```
 
 ### 步骤 2: 注册到插件列表
 
-修改 `PLUGIN_LIST` 变量：
+修改 `PLUGIN_LIST` 及分类列表：
 
 ```sh
-# 原来
-PLUGIN_LIST="crx danmaku player"
-
-# 添加后
-PLUGIN_LIST="crx danmaku player newplugin"
+PLUGIN_LIST="... newplugin"
+WEB_PLUGIN_LIST="..."        # 如果是 web 类型
+DLL_PLUGIN_LIST="..."        # 如果是 dll 类型
 ```
 
 ### 步骤 3: 更新菜单选项
@@ -133,15 +143,17 @@ PLUGIN_<ID>_<属性>
 ID: 插件唯一标识 (大写)
 属性:
   - ID        : 小写标识符
+  - TYPE      : 插件类型 (`web` 或 `dll`)
   - NAME      : 显示名称
   - DESC      : 功能描述
-  - DIR       : 存放目录
+  - DIR       : [Web] 存放目录
   - PROJECT   : 项目地址
-  - FILES     : 需下载的文件列表 (空格分隔)
-  - BASE_PATH : GitHub 仓库路径 (owner/repo/branch)
-  - INJECT_HEAD : 注入到 <head> 的代码
-  - INJECT_BODY : 注入到 <body> 的代码
-  - MARKER    : HTML 标记字符串
+  - FILES     : [Web] 需下载的文件列表
+  - BASE_PATH : [Web] GitHub 文件根路径
+  - INJECT_*  : [Web] 注入代码
+  - RELEASE_API: [DLL] GitHub 仓库标识 (owner/repo)
+  - DLL_PATTERN: [DLL] 文件名匹配模式
+  - MARKER    : 环境检测用的关键词
 ```
 
 ### 下载源切换

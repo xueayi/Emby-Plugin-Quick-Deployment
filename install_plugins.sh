@@ -11,7 +11,7 @@
 # ========================== 全局配置 ==========================
 
 # 默认路径
-VERSION="1.1.1"
+VERSION="1.1.2"
 UI_DIR="/system/dashboard-ui"
 BACKUP_DIR="/system/dashboard-ui/.plugin_backups"
 MAX_BACKUPS=5
@@ -92,8 +92,8 @@ PLUGIN_MEIAM_DESC="自动下载迅雷/射手网字幕"
 PLUGIN_MEIAM_TYPE="dll"
 PLUGIN_MEIAM_PROJECT="https://github.com/91270/MeiamSubtitles"
 PLUGIN_MEIAM_RELEASE_API="91270/MeiamSubtitles"
-PLUGIN_MEIAM_DLL_PATTERN="Emby.MeiamSub"
-PLUGIN_MEIAM_MARKER="Emby.MeiamSub"
+PLUGIN_MEIAM_DLL_PATTERN="Emby.MeiamSub.dll"
+PLUGIN_MEIAM_MARKER="Emby.MeiamSub.dll"
 
 # --- 插件6: Telegram 通知 (TelegramNotification) ---
 PLUGIN_TELEGRAM_ID="telegram"
@@ -661,11 +661,19 @@ install_dll_plugin() {
     local download_url=$(get_release_download_url "$release_api" "$dll_pattern")
     
     if [ -z "$download_url" ]; then
-        printf "${RED}失败${NC}\n"
-        print_error "无法获取下载链接，请检查网络或插件名称"
-        return 1
+        # 尝试构造直接下载链接作为回退 (适用于有固定文件名的插件)
+        if echo "$dll_pattern" | grep -qi "\.dll$"; then
+            download_url="https://github.com/${release_api}/releases/latest/download/${dll_pattern}"
+            printf "${YELLOW}API受限，尝试直接下载${NC}\n"
+            log "WARNING" "GitHub API 受限，通过固定文件名尝试直接下载: $download_url"
+        else
+            printf "${RED}失败${NC}\n"
+            print_error "无法获取下载链接，请检查网络或插件名称"
+            return 1
+        fi
+    else
+        printf "${GREEN}成功${NC}\n"
     fi
-    printf "${GREEN}成功${NC}\n"
     log "DEBUG" "下载链接: $download_url"
     
     # 确定文件名
