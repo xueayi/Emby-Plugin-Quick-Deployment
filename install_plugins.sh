@@ -11,7 +11,7 @@
 # ========================== 全局配置 ==========================
 
 # 默认路径
-VERSION="1.1.2"
+VERSION="1.1.3"
 UI_DIR="/system/dashboard-ui"
 BACKUP_DIR="/system/dashboard-ui/.plugin_backups"
 MAX_BACKUPS=5
@@ -661,11 +661,30 @@ install_dll_plugin() {
     local download_url=$(get_release_download_url "$release_api" "$dll_pattern")
     
     if [ -z "$download_url" ]; then
-        # 尝试构造直接下载链接作为回退 (适用于有固定文件名的插件)
-        if echo "$dll_pattern" | grep -qi "\.dll$"; then
-            download_url="https://github.com/${release_api}/releases/latest/download/${dll_pattern}"
+        # 尝试构造直接下载链接作为回退 
+        # 依次尝试 .zip 和 .dll 
+        local base_name=$(echo "$dll_pattern" | sed 's/\.dll$//i')
+        for ext in "zip" "dll"; do
+            local test_url="https://github.com/${release_api}/releases/latest/download/${base_name}.${ext}"
+            log "DEBUG" "尝试回退链接 ($ext): $test_url"
+            
+            # 使用 curl -I 或 wget --spider 快速检测链接有效性
+            if check_cmd curl; then
+                if curl -sIL --connect-timeout 5 "$test_url" | grep -qi "302 Found\|200 OK"; then
+                    download_url="$test_url"
+                    break
+                fi
+            elif check_cmd wget; then
+                if wget -q --spider --timeout=5 "$test_url" 2>/dev/null; then
+                    download_url="$test_url"
+                    break
+                fi
+            fi
+        done
+        
+        if [ -n "$download_url" ]; then
             printf "${YELLOW}API受限，尝试直接下载${NC}\n"
-            log "WARNING" "GitHub API 受限，通过固定文件名尝试直接下载: $download_url"
+            log "WARNING" "GitHub API 受限，通过回退机制发现可用链接: $download_url"
         else
             printf "${RED}失败${NC}\n"
             print_error "无法获取下载链接，请检查网络或插件名称"
@@ -674,7 +693,7 @@ install_dll_plugin() {
     else
         printf "${GREEN}成功${NC}\n"
     fi
-    log "DEBUG" "下载链接: $download_url"
+    log "DEBUG" "最终下载链接: $download_url"
     
     # 确定文件名
     local filename=$(basename "$download_url")
