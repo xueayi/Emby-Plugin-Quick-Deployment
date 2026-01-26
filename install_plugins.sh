@@ -11,15 +11,15 @@
 # ========================== 全局配置 ==========================
 
 VERSION="1.0.0"
-UI_DIR="./system/dashboard-ui"
-BACKUP_DIR="./system/dashboard-ui/.plugin_backups"
+UI_DIR="/system/dashboard-ui"
+BACKUP_DIR="/system/dashboard-ui/.plugin_backups"
 MAX_BACKUPS=5
 INDEX_FILE="index.html"
 LOG_FILE="/tmp/emby_plugin_install.log"
 
 # 下载源配置
 GITHUB_RAW="https://raw.githubusercontent.com"
-MIRROR_GHPROXY="https://mirror.ghproxy.com"
+MIRROR_GHPROXY="https://ghproxy.net"
 CURRENT_SOURCE="github"  # github 或 mirror
 
 # 颜色代码 (兼容精简终端)
@@ -438,7 +438,7 @@ select_source() {
     echo ""
     print_info "选择下载源:"
     echo "  1) GitHub 直连 (海外用户推荐)"
-    echo "  2) 国内加速 (ghproxy.com 镜像)"
+    echo "  2) 国内加速 (ghproxy.net 镜像)"
     printf "\n请选择 [1-2] (默认1): "
     read choice
     
