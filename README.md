@@ -60,6 +60,7 @@
 *   **功能**: 通过协议调用本地播放器，实现从浏览器一键唤起本地的高性能播放器。
 *   **项目地址**: [bpking1/embyExternalUrl](https://github.com/bpking1/embyExternalUrl)
 
+<<<<<<< Updated upstream
 ### 4. 豆瓣削刮器 (Douban)
 *   **功能**: 为 Emby 提供豆瓣元数据削刮功能，解决电影/电视剧削刮难题。
 *   **项目地址**: [AlifeLine/Emby.Plugins.Douban](https://github.com/AlifeLine/Emby.Plugins.Douban)
@@ -71,6 +72,12 @@
 ### 6. Telegram 通知 (TelegramNotification)
 *   **功能**: 将 Emby 的通知（如新片上线、播放记录等）推送至 Telegram Bot。
 *   **项目地址**: [bjoerns1983/Emby.Plugin.TelegramNotification](https://github.com/bjoerns1983/Emby.Plugin.TelegramNotification)
+=======
+### 4. 界面美化（emby 4.9+ 版本推荐） (Emby Home Swiper)
+*   **功能**: 现代化全屏轮播横幅组件，自动展示最新和热门媒体内容。
+*   **项目地址**: [sohag1192/Emby-Home-Swiper-UI](https://github.com/sohag1192/Emby-Home-Swiper-UI)
+*   **版本要求**: **Emby 4.9.1.80 及以上版本**
+>>>>>>> Stashed changes
 
 #### 客户端环境配置（必须）：
 要使网页端的“按钮”生效，您的本地电脑必须安装相应的关联程序：
