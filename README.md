@@ -11,7 +11,7 @@
 
 #### 安装步骤：
 1. **一键执行**:
-- 如需设置其他路径下的安装，请在脚本启动后配置路径。
+- 如果使用docker部署的emby，推荐在进入emby的docker终端环境后在其根目录执行。如需设置其他路径下的安装，请在脚本启动后配置路径。
 
    ```bash
    wget -q https://raw.githubusercontent.com/xueayi/Emby-Plugin-Quick-Deployment/refs/heads/master/install_plugins.sh -O install_plugins.sh && chmod +x install_plugins.sh && ./install_plugins.sh
