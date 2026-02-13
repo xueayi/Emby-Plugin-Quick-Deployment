@@ -9,10 +9,10 @@ This repository provides a one-click installation solution for integrating plugi
 ## Quick Start
 
 ### 1. Server-side Deployment
-Using the `install_plugins.sh` script provided in this repository, you can complete the installation of all plugins with a single click.
+Using the `install_plugins_en` script provided in this repository, you can complete the installation of all plugins with a single click.
 
 #### Installation Steps:
-1. **One-click Execution**:
+1. **Docker / Linux**:
 - If you are using Docker to deploy Emby, it is recommended to execute the script in the root directory after entering the Emby Docker terminal environment. If you need to set up installation in other paths, please configure the path after the script starts.
 
 - English installation command
@@ -23,6 +23,22 @@ Using the `install_plugins.sh` script provided in this repository, you can compl
 - Chinese installation command
    ```bash
    wget -q https://raw.githubusercontent.com/xueayi/Emby-Plugin-Quick-Deployment/refs/heads/master/install_plugins.sh -O install_plugins.sh && chmod +x install_plugins.sh && ./install_plugins.sh
+   ```
+
+
+2. **Windows (PowerShell)**:
+- If your Emby is running on Windows, please stop Emby Server before running this script to avoid file locking. If you need to set up installation in other paths, please configure the path after the script starts.
+
+- English installation command
+   ```powershell
+   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/xueayi/Emby-Plugin-Quick-Deployment/refs/heads/master/install_plugins_en.ps1" -OutFile "install_plugins_en.ps1"
+   powershell -ExecutionPolicy Bypass -File install_plugins_en.ps1
+   ```
+
+- Chinese installation command
+   ```powershell
+   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/xueayi/Emby-Plugin-Quick-Deployment/refs/heads/master/install_plugins.ps1" -OutFile "install_plugins.ps1"
+   powershell -ExecutionPolicy Bypass -File install_plugins.ps1
    ```
 
 - Refresh the Emby web UI after installation to see the effects.

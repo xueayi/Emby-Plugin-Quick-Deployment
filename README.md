@@ -9,10 +9,10 @@
 ## 快速开始
 
 ### 1. 服务端部署
-通过本仓库提供的 `install_plugins.sh` 脚本，您可以一键完成所有插件的安装。
+通过本仓库提供的 `install_plugins` 脚本，您可以一键完成所有插件的安装。
 
 #### 安装步骤：
-1. **一键执行**:
+1. **Docker / Linux**:
 - 如果使用docker部署的emby，推荐在进入emby的docker终端环境后在其根目录执行。如需设置其他路径下的安装，请在脚本启动后配置路径。
 
 - 中文安装命令（Chinese installation command）
@@ -23,6 +23,21 @@
 - 英文安装命令（English installation command）
    ```bash
    wget -q https://raw.githubusercontent.com/xueayi/Emby-Plugin-Quick-Deployment/refs/heads/master/install_plugins_en.sh -O install_plugins_en.sh && chmod +x install_plugins_en.sh && ./install_plugins_en.sh
+   ```
+
+2. **Windows (PowerShell)**:
+- 如果您的Emby运行在Windows上，请确保Emby Server已停止运行后再运行此脚本，避免文件被锁定。如需设置其他路径下的安装，请在脚本启动后配置路径。
+
+- 中文安装命令（Chinese installation command）
+   ```powershell
+   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/xueayi/Emby-Plugin-Quick-Deployment/refs/heads/master/install_plugins.ps1" -OutFile "install_plugins.ps1"
+   powershell -ExecutionPolicy Bypass -File install_plugins.ps1
+   ```
+
+- 英文安装命令（English installation command）
+   ```powershell
+   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/xueayi/Emby-Plugin-Quick-Deployment/refs/heads/master/install_plugins_en.ps1" -OutFile "install_plugins_en.ps1"
+   powershell -ExecutionPolicy Bypass -File install_plugins_en.ps1
    ```
 
 - 安装后刷新 Emby 网页端即可看到效果。
