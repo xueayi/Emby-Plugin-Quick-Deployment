@@ -1,10 +1,10 @@
 # Emby 插件快速安装指南
 
-[English](README_EN.md) | [中文](README.md)
+[English](/docs/README_EN.md) | [中文](/README.md)
 
 本仓库提供了一套用于 Emby Server Web 端的插件集成一键安装方案，包括界面美化、弹幕支持以及外部播放器（PotPlayer/MPV）调用功能。这些功能实现来自于开源社区其他朋友的贡献，项目地址已附在下方对应位置。
 
-![主界面](image/main.png)
+![主界面](/image/main.png)
 
 ## 快速开始
 
@@ -15,20 +15,35 @@
 1. **Docker / Linux**:
 - 如果使用docker部署的emby，推荐在进入emby的docker终端环境后在其根目录执行。如需设置其他路径下的安装，请在脚本启动后配置路径。
 
+- 中文安装命令（Chinese installation command）
    ```bash
    wget -q https://raw.githubusercontent.com/xueayi/Emby-Plugin-Quick-Deployment/refs/heads/master/install_plugins.sh -O install_plugins.sh && chmod +x install_plugins.sh && ./install_plugins.sh
+   ```
+
+- 英文安装命令（English installation command）
+   ```bash
+   wget -q https://raw.githubusercontent.com/xueayi/Emby-Plugin-Quick-Deployment/refs/heads/master/install_plugins_en.sh -O install_plugins_en.sh && chmod +x install_plugins_en.sh && ./install_plugins_en.sh
    ```
 
 2. **Windows (PowerShell)**:
 - 如果您的Emby运行在Windows上，请确保Emby Server已停止运行后再运行此脚本，避免文件被锁定。如需设置其他路径下的安装，请在脚本启动后配置路径。
 
+- 中文安装命令（Chinese installation command）
    ```powershell
    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/xueayi/Emby-Plugin-Quick-Deployment/refs/heads/master/install_plugins.ps1" -OutFile "install_plugins.ps1"
    powershell -ExecutionPolicy Bypass -File install_plugins.ps1
    ```
 
+- 英文安装命令（English installation command）
+   ```powershell
+   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/xueayi/Emby-Plugin-Quick-Deployment/refs/heads/master/install_plugins_en.ps1" -OutFile "install_plugins_en.ps1"
+   powershell -ExecutionPolicy Bypass -File install_plugins_en.ps1
+   ```
+
+- 安装后刷新 Emby 网页端即可看到效果。
+
 1. 安装插件后刷新 Emby 网页端即可看到效果。
-2. 如果您不想使用一键执行脚本安装，可以参考[emby插件手动安装方法和说明.md](emby插件手动安装方法和说明.md)进行手动安装
+2. 如果您不想使用一键执行脚本安装，可以参考[emby插件手动安装方法和说明.md](/docs/emby插件手动安装方法和说明.md)进行手动安装
 
 > [!WARNING]
 > **插件互斥说明：**

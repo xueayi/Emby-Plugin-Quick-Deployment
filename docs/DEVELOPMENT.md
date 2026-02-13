@@ -8,10 +8,17 @@
 
 ```
 Emby-Plugin-Quick-Deployment/
-├── install_plugins.sh          # 主安装脚本
-├── README.md                   # 用户使用文档
-├── DEVELOPMENT.md              # 开发者文档 (本文件)
-└── emby插件手动安装方法和说明.md  # 手动安装参考
+├── install_plugins.sh          # 主安装脚本 (中文)
+├── install_plugins_en.sh       # 主安装脚本 (英文)
+├── README.md                   # 用户使用文档 (中文)
+├── docs/                       # 文档目录
+│   ├── DEVELOPMENT.md          # 开发者文档 (本文件)
+│   ├── README_EN.md            # 用户使用文档 (英文)
+│   ├── emby插件手动安装方法和说明.md  # 手动安装参考 (中文)
+│   └── emby插件手动安装方法和说明_en.md # 手动安装参考 (英文)
+├── image/                      # 文档图片资源
+├── tests/                      # 测试相关脚本/页面
+└── .gitignore                  # Git 忽略配置文件
 ```
 
 ---

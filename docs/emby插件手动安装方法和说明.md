@@ -1,4 +1,4 @@
-[English](emby插件手动安装方法和说明_en.md) | [中文](emby插件手动安装方法和说明.md)
+[English](/docs/emby插件手动安装方法和说明_en.md) | [中文](/docs/emby插件手动安装方法和说明.md)
 
 # 美化插件
 
