@@ -54,10 +54,9 @@ Using the `install_plugins_en` script provided in this repository, you can compl
 > - For Emby 4.9+ versions, **Home Swiper (Emby Home Swiper)** is recommended.
 
 > [!IMPORTANT]
-> **Three Core Conditions for External Player Usage:**
-> 1. **Server Side**: The Emby server runs JS scripts via the Nginx njs module to add external player links to the external links section of Emby videos, compatible with all official Emby clients. Reference: [embyExternalUrl Native Deployment Scheme](https://github.com/bpking1/embyExternalUrl/blob/main/README.zh-Hans.md)
-> 2. **Web UI**: Emby's `index.html` must successfully import the script to render the play button on the frontend. This can be achieved by modifying the server's `index.html` file or using a browser Tampermonkey script on the client side. Reference: [embylaunchpotplayer Tampermonkey Documentation](https://greasyfork.org/zh-CN/scripts/514529-embylaunchpotplayer)
-> 3. **Player Protocol**: The local computer must have the player and its corresponding protocol handler installed (e.g., PotPlayer or mpv-handler). Reference: [mpv-handler Setup Project](https://github.com/akiirui/mpv-handler)
+> **Two Core Conditions for External Player Usage:**
+> 1. **Web UI**: Emby's `index.html` must successfully import the script to render the play button on the frontend. This can be achieved by modifying the server's `index.html` file or using a browser Tampermonkey script on the client side. Reference: [embylaunchpotplayer Tampermonkey Documentation](https://greasyfork.org/zh-CN/scripts/514529-embylaunchpotplayer)
+> 2. **Player Protocol**: The local computer must have the player and its corresponding protocol handler installed (e.g., PotPlayer or mpv-handler). Reference: [mpv-handler Setup Project](https://github.com/akiirui/mpv-handler)
 
 ---
 

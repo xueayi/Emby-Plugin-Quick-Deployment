@@ -89,10 +89,9 @@ https://github.com/akiirui/mpv-handler
 https://greasyfork.org/zh-CN/scripts/514529-embylaunchpotplayer
 
 > [!IMPORTANT]
-> **外部播放器正常使用的三个核心条件：**
-> 1. **后端（Server Side）**: emby服务器通过nginx的njs模块运行js脚本，在emby视频的外部链接处添加调用外部播放器链接，所有emby官方客户端可用。参考：[embyExternalUrl 原生部署方案](https://github.com/bpking1/embyExternalUrl/blob/main/README.zh-Hans.md)
-> 2. **前端（Web UI）**: Emby 的 `index.html` 必须成功引入脚本并在前端渲染播放按钮。可以通过修改服务器的 `index.html` 文件或者客户端使用浏览器油猴脚本两种方式实现。参考：[embylaunchpotplayer 油猴文档](https://greasyfork.org/zh-CN/scripts/514529-embylaunchpotplayer)
-> 3. **播放协议（Player Protocol）**: 本地电脑必须安装播放器及其对应的协议处理器（如 PotPlayer 或 mpv-handler）。参考：[mpv-handler 设置项目](https://github.com/akiirui/mpv-handler)
+> **外部播放器正常使用的两个核心条件：**
+> 1. **前端（Web UI）**: Emby 的 `index.html` 必须成功引入脚本并在前端渲染播放按钮。可以通过修改服务器的 `index.html` 文件或者客户端使用浏览器油猴脚本两种方式实现。参考：[embylaunchpotplayer 油猴文档](https://greasyfork.org/zh-CN/scripts/514529-embylaunchpotplayer)
+> 2. **播放协议（Player Protocol）**: 本地电脑必须安装播放器及其对应的协议处理器（如 PotPlayer 或 mpv-handler）。参考：[mpv-handler 设置项目](https://github.com/akiirui/mpv-handler)
 
 ## 手动安装步骤
 
