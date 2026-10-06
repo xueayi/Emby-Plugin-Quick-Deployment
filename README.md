@@ -25,6 +25,20 @@
    wget -q https://raw.githubusercontent.com/xueayi/Emby-Plugin-Quick-Deployment/refs/heads/master/install_plugins_en.sh -O install_plugins_en.sh && chmod +x install_plugins_en.sh && ./install_plugins_en.sh
    ```
 
+3. **飞牛 fnOS 原生版**（v1.1.0 新增，在飞牛宿主机 SSH 中运行，非容器）:
+- 应用商店安装的 Emby 原生应用无需进入容器，脚本会自动探测 `/var/apps/*/target/system/dashboard-ui`，但写入需要 `sudo` 权限。
+- 支持非交互式安装/卸载指定插件（插件 ID：`crx` `danmaku` `player` `swiper`）：
+
+   ```bash
+   wget -q https://raw.githubusercontent.com/xueayi/Emby-Plugin-Quick-Deployment/refs/heads/master/install_plugins.sh -O install_plugins.sh && chmod +x install_plugins.sh
+   sudo ./install_plugins.sh --status                    # 查看状态（自动探测原生路径）
+   sudo ./install_plugins.sh --install danmaku,player    # 安装弹幕+外部播放器
+   sudo ./install_plugins.sh --uninstall danmaku         # 卸载指定插件
+   sudo ./install_plugins.sh --ui-dir <路径> --install swiper   # 也可显式指定路径
+   ```
+
+- ⚠️ 注意：应用中心升级 Emby 会重置程序目录（含 `dashboard-ui`），升级后需重新执行安装；安装/卸载无需重启 Emby，刷新网页即可生效。脚本无法写入时会提示使用 `sudo`。
+
 2. **Windows (PowerShell)**:
 - 如果您的Emby运行在Windows上，请确保Emby Server已停止运行后再运行此脚本，避免文件被锁定。如需设置其他路径下的安装，请在脚本启动后配置路径。
 

@@ -1,9 +1,10 @@
 #!/bin/sh
 # ============================================================================
-# Emby 插件管理脚本 v1.0.0
+# Emby 插件管理脚本 v1.1.0
 # 适用于 Emby Docker 精简终端 (BusyBox/Alpine sh)
-# 
-# 功能: 选择性安装/卸载插件、备份恢复、国内加速源
+# 以及 飞牛 fnOS 应用商店原生版 Emby (自动探测, 需 sudo)
+#
+# 功能: 选择性安装/卸载插件、备份恢复、国内加速源、fnOS 原生路径自动探测
 # 作者: xueayi
 # 项目: https://github.com/xueayi/Emby-Plugin-Quick-Deployment
 # ============================================================================
@@ -11,12 +12,16 @@
 # ========================== 全局配置 ==========================
 
 # 默认路径
-VERSION="1.0.0"
+VERSION="1.1.0"
 UI_DIR="/system/dashboard-ui"
 BACKUP_DIR="/system/dashboard-ui/.plugin_backups"
 MAX_BACKUPS=5
 INDEX_FILE="index.html"
 LOG_FILE="/tmp/emby_plugin_install.log"
+
+# 路径解析状态: UI_DIR_EXPLICIT=1 表示用户通过 --ui-dir 显式指定
+UI_DIR_EXPLICIT=0
+IS_FNOS_NATIVE=0
 
 # 下载源配置
 GITHUB_RAW="https://raw.githubusercontent.com"
@@ -155,6 +160,26 @@ download_file() {
 
 # ========================== 环境检测 ==========================
 
+# fnOS 原生应用探测: 未显式指定路径且在 fnOS 宿主机上时,
+# 自动查找 /var/apps/*/target/system/dashboard-ui
+detect_ui_dir() {
+    if [ "$UI_DIR_EXPLICIT" = "1" ]; then
+        return 0
+    fi
+    # 仅在 fnOS 宿主机上探测 (存在 /var/apps 与 /usr/trim 即视为 fnOS)
+    if [ -d "/var/apps" ] && [ -d "/usr/trim" ]; then
+        for d in /var/apps/*/target/system/dashboard-ui; do
+            if [ -f "$d/$INDEX_FILE" ]; then
+                UI_DIR="$d"
+                BACKUP_DIR="$d/.plugin_backups"
+                IS_FNOS_NATIVE=1
+                return 0
+            fi
+        done
+    fi
+    return 1
+}
+
 # 配置自定义路径
 configure_custom_path() {
     echo ""
@@ -176,7 +201,14 @@ configure_custom_path() {
 
 check_environment() {
     print_info "检测运行环境..."
-    
+
+    # fnOS 原生路径自动探测
+    if detect_ui_dir; then
+        if [ "$IS_FNOS_NATIVE" = "1" ]; then
+            print_success "检测到 fnOS 原生 Emby 应用"
+        fi
+    fi
+
     # 检查 UI 目录
     if [ ! -d "$UI_DIR" ]; then
         print_error "未找到 Emby UI 目录: $UI_DIR"
@@ -184,16 +216,19 @@ check_environment() {
         print_info "或使用 --ui-dir 参数指定路径"
         return 1
     fi
-    
+
     # 检查 index.html
     if [ ! -f "$UI_DIR/$INDEX_FILE" ]; then
         print_error "未找到 index.html: $UI_DIR/$INDEX_FILE"
         return 1
     fi
-    
+
     # 检查写入权限
     if [ ! -w "$UI_DIR" ]; then
         print_error "无写入权限: $UI_DIR"
+        if [ "$IS_FNOS_NATIVE" = "1" ]; then
+            print_info "fnOS 原生应用目录需要 root 权限, 请使用 sudo 运行本脚本"
+        fi
         return 1
     fi
     
@@ -317,6 +352,63 @@ restore_backup() {
 }
 
 # ========================== 插件操作 ==========================
+
+# fnOS 原生版提示: 应用升级会重置 target 目录, 插件需要重新安装
+print_fnos_upgrade_note() {
+    if [ "$IS_FNOS_NATIVE" = "1" ]; then
+        echo ""
+        print_warning "fnOS 提示: 应用中心升级 Emby 会重置程序目录, 届时请重新运行本脚本安装插件"
+    fi
+}
+
+# 校验插件 ID 是否合法, 输出归一化列表 (逗号/空格分隔 → 空格分隔)
+normalize_plugin_ids() {
+    local raw="$1"
+    local id out=""
+    for id in $(echo "$raw" | tr ',' ' '); do
+        local ok=0
+        for known in $PLUGIN_LIST; do
+            [ "$id" = "$known" ] && ok=1 && break
+        done
+        if [ "$ok" = "1" ]; then
+            out="$out $id"
+        else
+            print_error "未知插件 ID: $id (可用: $PLUGIN_LIST)"
+        fi
+    done
+    echo "$out"
+}
+
+# 非交互式安装指定插件
+install_selected() {
+    local ids=$(normalize_plugin_ids "$1")
+    [ -z "$ids" ] && return 1
+    if ! check_environment; then exit 1; fi
+    cd "$UI_DIR" || exit 1
+    ensure_backup_dir
+    create_original_backup
+    create_timestamped_backup
+    for id in $ids; do
+        install_plugin "$id"
+    done
+    print_success "指定插件安装完成！刷新 Emby 网页即可生效。"
+    print_fnos_upgrade_note
+}
+
+# 非交互式卸载指定插件
+uninstall_selected() {
+    local ids=$(normalize_plugin_ids "$1")
+    [ -z "$ids" ] && return 1
+    if ! check_environment; then exit 1; fi
+    cd "$UI_DIR" || exit 1
+    ensure_backup_dir
+    create_timestamped_backup
+    for id in $ids; do
+        uninstall_plugin "$id"
+    done
+    print_success "指定插件已卸载！刷新 Emby 网页即可生效。"
+    print_fnos_upgrade_note
+}
 
 # 获取插件属性
 get_plugin_attr() {
@@ -596,6 +688,7 @@ install_menu() {
     
     echo ""
     print_success "安装操作完成！刷新 Emby 网页即可生效。"
+    print_fnos_upgrade_note
 }
 
 # 卸载菜单
@@ -640,6 +733,7 @@ uninstall_menu() {
     
     echo ""
     print_success "卸载操作完成！刷新 Emby 网页即可生效。"
+    print_fnos_upgrade_note
 }
 
 # 备份管理菜单
@@ -732,12 +826,15 @@ main_menu() {
             1) install_menu ;;
             2) uninstall_menu ;;
             3) backup_menu ;;
-            4) 
+            4)
                 configure_custom_path
                 if ! check_environment; then
                     print_error "路径配置无效，已恢复默认设置"
                     UI_DIR="/system/dashboard-ui"
                     BACKUP_DIR="/system/dashboard-ui/.plugin_backups"
+                    UI_DIR_EXPLICIT=0
+                    IS_FNOS_NATIVE=0
+                    detect_ui_dir
                 fi
                 ;;
             5) show_help ;;
@@ -763,9 +860,15 @@ show_usage() {
     echo "  -v, --version        显示版本信息"
     echo "  -s, --status         显示插件状态"
     echo "  --ui-dir <路径>      指定 index.html 所在目录的绝对路径"
+    echo "  --install <ids>      非交互式安装指定插件 (逗号分隔, 如 danmaku,player)"
+    echo "  --uninstall <ids>    非交互式卸载指定插件"
     echo "  --install-all        非交互式安装全部插件"
     echo "  --uninstall-all      非交互式卸载全部插件"
     echo "  --use-mirror         使用国内加速源"
+    echo ""
+    echo "插件 ID: $PLUGIN_LIST"
+    echo "fnOS 原生版: 在飞牛宿主机上自动探测 /var/apps/*/target/system/dashboard-ui,"
+    echo "             需要 sudo 运行; 应用升级会重置插件, 重新执行本脚本即可"
     echo ""
     echo "交互式运行: $0"
 }
@@ -799,12 +902,33 @@ main() {
                 if [ -n "$1" ]; then
                     UI_DIR="$1"
                     BACKUP_DIR="${1}/.plugin_backups"
+                    UI_DIR_EXPLICIT=1
                     print_info "使用自定义路径: $UI_DIR"
                 else
                     print_error "--ui-dir 需要指定路径参数"
                     exit 1
                 fi
                 shift
+                ;;
+            --install)
+                shift
+                if [ -n "$1" ]; then
+                    install_selected "$1"
+                else
+                    print_error "--install 需要插件 ID 参数 (如 danmaku,player)"
+                    exit 1
+                fi
+                exit 0
+                ;;
+            --uninstall)
+                shift
+                if [ -n "$1" ]; then
+                    uninstall_selected "$1"
+                else
+                    print_error "--uninstall 需要插件 ID 参数"
+                    exit 1
+                fi
+                exit 0
                 ;;
             --use-mirror)
                 CURRENT_SOURCE="mirror"
@@ -845,6 +969,11 @@ main() {
     # 环境检测
     if ! check_environment; then
         exit 1
+    fi
+
+    # fnOS 原生模式下的 root 提醒
+    if [ "$IS_FNOS_NATIVE" = "1" ] && [ "$(id -u)" != "0" ]; then
+        print_warning "当前非 root 运行: fnOS 原生应用目录可能写入失败, 建议使用 sudo 重跑"
     fi
     
     # 切换到 UI 目录
