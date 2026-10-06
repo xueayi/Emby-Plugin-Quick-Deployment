@@ -78,9 +78,10 @@ PLUGIN_SWIPER_NAME="首页轮播 (Emby Home Swiper)"
 PLUGIN_SWIPER_DESC="现代化全屏轮播横幅，展示最新媒体 (Emby 4.9+ 推荐)"
 PLUGIN_SWIPER_DIR=""
 PLUGIN_SWIPER_PROJECT="https://github.com/sohag1192/Emby-Home-Swiper-UI"
-PLUGIN_SWIPER_FILES="v1/home.js"
+# 上游 v2 真实路径 (旧 v1/home.js 已被上游移走, 404); v2 需 defer 加载
+PLUGIN_SWIPER_FILES="home-swiper-v2/home-swiper.js"
 PLUGIN_SWIPER_BASE_PATH="sohag1192/Emby-Home-Swiper-UI/refs/heads/main"
-PLUGIN_SWIPER_INJECT_HEAD='<script src="home.js"></script>'
+PLUGIN_SWIPER_INJECT_HEAD='<script src="home.js" defer></script>'
 PLUGIN_SWIPER_MARKER="home.js"
 
 # 插件列表 (空格分隔的ID)
@@ -483,6 +484,9 @@ install_plugin() {
             # 特殊处理: 外部播放器重命名
             if [ "$plugin_id" = "player" ]; then
                 output="$UI_DIR/externalPlayer.js"
+            elif [ "$plugin_id" = "swiper" ]; then
+                # 轮播 v2 注入引用固定为 home.js
+                output="$UI_DIR/home.js"
             else
                 output="$UI_DIR/$filename"
             fi
@@ -592,6 +596,10 @@ uninstall_plugin() {
         # 外部播放器
         if [ "$plugin_id" = "player" ]; then
             rm -f "$UI_DIR/externalPlayer.js" 2>/dev/null
+        fi
+        # 轮播 v2 (注入引用固定为 home.js)
+        if [ "$plugin_id" = "swiper" ]; then
+            rm -f "$UI_DIR/home.js" 2>/dev/null
         fi
     fi
     
