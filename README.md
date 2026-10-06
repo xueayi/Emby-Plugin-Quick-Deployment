@@ -90,8 +90,8 @@
 ### 4. 首页轮播（emby 4.9+ 版本推荐） (Emby Home Swiper)
 *   **功能**: 现代化全屏轮播横幅组件，自动展示最新和热门媒体内容。
 *   **项目地址**: [sohag1192/Emby-Home-Swiper-UI](https://github.com/sohag1192/Emby-Home-Swiper-UI)
-*   **版本要求**: **Emby 4.9.1.80 和 Emby 4.8.11.0 已测试通过**
-*   **注意事项**: 本插件安装后服务器的网页标题会被替换成`SN FTP SERVER`，若想改回原标题，需要手动注释安装到本地的`home.js`文件中的`Emby.Page.setTitle("SN FTP SERVER");`这两行代码。
+*   **版本要求**: **Emby 4.9.1.80 和 Emby 4.8.11.0 已测试通过**（本脚本现默认安装 V2 版；实测 Emby 4.9.0.42 亦可正常工作）
+*   **注意**: 早期版本的 `home.js` 会将服务器网页标题硬编码替换为 `SN FTP SERVER`。该问题已通过 [PR](https://github.com/sohag1192/Emby-Home-Swiper-UI/pulls?q=is%3Apr+title+respect+server+name) 在上游修复（当前上游 v1/v2 文件均已不再替换标题），本脚本拉取的最新文件无此问题，无需再手动注释代码。
 
 #### 客户端环境配置（必须）：
 要使网页端的“按钮”生效，您的本地电脑必须安装相应的关联程序：

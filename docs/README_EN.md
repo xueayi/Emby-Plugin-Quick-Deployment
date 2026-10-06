@@ -77,8 +77,8 @@ Using the `install_plugins_en` script provided in this repository, you can compl
 ### 4. Home Swiper (Recommended for Emby 4.9+) (Emby Home Swiper)
 *   **Feature**: A modern full-screen carousel banner component that automatically displays latest and popular media content.
 *   **Project Address**: [sohag1192/Emby-Home-Swiper-UI](https://github.com/sohag1192/Emby-Home-Swiper-UI)
-*   **Version Requirements**: **Tested successfully on Emby 4.9.1.80 and Emby 4.8.11.0**
-*   **Notes**: After installing this plugin, the server's webpage title will be replaced with `SN FTP SERVER`. To change it back to the original title, you need to manually comment out the two lines of code `Emby.Page.setTitle("SN FTP SERVER");` in the locally installed `home.js` file.
+*   **Version Requirements**: **Tested successfully on Emby 4.9.1.80 and Emby 4.8.11.0** (this script now installs the V2 build by default; empirically verified working on Emby 4.9.0.42 as well)
+*   **Note**: Older builds of `home.js` hardcoded the server webpage title to `SN FTP SERVER`. This has been fixed upstream via a [PR](https://github.com/sohag1192/Emby-Home-Swiper-UI/pulls?q=is%3Apr+title+respect+server+name) (current upstream v1/v2 files no longer replace the title), so the latest files pulled by this script are not affected — no manual code commenting needed.
 
 #### Client Environment Configuration (Required):
 To make the "buttons" on the web side work, your local computer must have the corresponding association programs installed:
