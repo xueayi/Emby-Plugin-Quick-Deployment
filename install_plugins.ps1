@@ -45,7 +45,7 @@ $PLUGINS = @{
         name="[CN]弹幕插件 (dd-danmaku)"
         desc="播放器弹幕显示"
         dir="dd-danmaku"
-        base_path="chen3861229/dd-danmaku/refs/heads/main"
+        base_path="l429609201/dd-danmaku/refs/heads/main"
         files=@("ede.js")
         marker="dd-danmaku"
     }

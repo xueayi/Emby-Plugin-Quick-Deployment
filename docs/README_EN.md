@@ -68,7 +68,7 @@ Using the `install_plugins_en` script provided in this repository, you can compl
 
 ### 2. Danmaku Plugin (dd-danmaku)
 *   **Feature**: Integrates danmaku display functionality into the Web player.
-*   **Project Address**: [chen3861229/dd-danmaku](https://github.com/chen3861229/dd-danmaku)
+*   **Project Address**: [l429609201/dd-danmaku](https://github.com/l429609201/dd-danmaku)
 
 ### 3. External Player Integration (PotPlayer/MPV)
 *   **Feature**: Calls local players via protocol to awaken high-performance local players from the browser with one click.

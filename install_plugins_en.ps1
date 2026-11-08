@@ -46,7 +46,7 @@ $PLUGINS = @{
         name="Danmaku Plugin (dd-danmaku)"
         desc="Danmaku display"
         dir="dd-danmaku"
-        base_path="chen3861229/dd-danmaku/refs/heads/main"
+        base_path="l429609201/dd-danmaku/refs/heads/main"
         files=@("ede.js")
         marker="dd-danmaku"
     }

@@ -45,7 +45,7 @@ fi
 # 弹幕插件
 
 项目地址：
-https://github.com/chen3861229/dd-danmaku
+https://github.com/l429609201/dd-danmaku
 
 ## 安装步骤
 
@@ -57,7 +57,7 @@ https://github.com/chen3861229/dd-danmaku
 # 创建dd-danmaku目录并下载ede.js
 rm -rf dd-danmaku
 mkdir -p dd-danmaku
-wget https://raw.githubusercontent.com/chen3861229/dd-danmaku/refs/heads/main/ede.js -P dd-danmaku/
+wget https://raw.githubusercontent.com/l429609201/dd-danmaku/refs/heads/main/ede.js -P dd-danmaku/
 
 # 读取index.html文件内容
 content=$(cat index.html)
@@ -188,7 +188,7 @@ if [ "$INSTALL_CRX" = true ]; then
 fi
 
 if [ "$INSTALL_DANMAKU" = true ]; then
-    wget -q https://raw.githubusercontent.com/chen3861229/dd-danmaku/refs/heads/main/ede.js -P dd-danmaku/
+    wget -q https://raw.githubusercontent.com/l429609201/dd-danmaku/refs/heads/main/ede.js -P dd-danmaku/
     sed -i '/<\/head>/i <script src="dd-danmaku/ede.js"></script>' index.html
 fi
 

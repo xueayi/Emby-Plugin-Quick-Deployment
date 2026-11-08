@@ -56,9 +56,9 @@ PLUGIN_DANMAKU_ID="danmaku"
 PLUGIN_DANMAKU_NAME="Danmaku plugin (dd-danmaku)"
 PLUGIN_DANMAKU_DESC="Integrate danmaku display function into web player"
 PLUGIN_DANMAKU_DIR="dd-danmaku"
-PLUGIN_DANMAKU_PROJECT="https://github.com/chen3861229/dd-danmaku"
+PLUGIN_DANMAKU_PROJECT="https://github.com/l429609201/dd-danmaku"
 PLUGIN_DANMAKU_FILES="ede.js"
-PLUGIN_DANMAKU_BASE_PATH="chen3861229/dd-danmaku/refs/heads/main"
+PLUGIN_DANMAKU_BASE_PATH="l429609201/dd-danmaku/refs/heads/main"
 PLUGIN_DANMAKU_INJECT_HEAD='<script src="dd-danmaku/ede.js"></script>'
 PLUGIN_DANMAKU_MARKER="dd-danmaku"
 

@@ -81,7 +81,7 @@
 
 ### 2. 弹幕插件 (dd-danmaku)
 *   **功能**: 为 Web 端播放器集成弹幕显示功能。
-*   **项目地址**: [chen3861229/dd-danmaku](https://github.com/chen3861229/dd-danmaku)
+*   **项目地址**: [l429609201/dd-danmaku](https://github.com/l429609201/dd-danmaku)
 
 ### 3. 外部播放器调用 (PotPlayer/MPV)
 *   **功能**: 通过协议调用本地播放器，实现从浏览器一键唤起本地的高性能播放器。
