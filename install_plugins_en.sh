@@ -2,10 +2,8 @@
 # ============================================================================
 # Emby Plugin Management Script v1.1.0
 # Suitable for Emby Docker minimal terminal (BusyBox/Alpine sh)
-# Also supports Emby installed natively from the fnOS app store (auto-detect, needs sudo)
 #
-# Features: Selective install/uninstall plugins, backup/restore, domestic mirror acceleration,
-#           automatic fnOS native path detection
+# Features: Selective install/uninstall plugins, backup/restore, domestic mirror acceleration
 # Author: xueayi
 # Project: https://github.com/xueayi/Emby-Plugin-Quick-Deployment
 # ============================================================================
@@ -19,10 +17,6 @@ BACKUP_DIR="/system/dashboard-ui/.plugin_backups"
 MAX_BACKUPS=5
 INDEX_FILE="index.html"
 LOG_FILE="/tmp/emby_plugin_install.log"
-
-# Path resolution state: UI_DIR_EXPLICIT=1 when the user passed --ui-dir
-UI_DIR_EXPLICIT=0
-IS_FNOS_NATIVE=0
 
 # Download source configuration
 GITHUB_RAW="https://raw.githubusercontent.com"
@@ -162,25 +156,6 @@ download_file() {
 
 # ========================== Environment Check ==========================
 
-# fnOS native app detection: when no explicit path is set and running on the
-# fnOS host, find /var/apps/*/target/system/dashboard-ui automatically.
-detect_ui_dir() {
-    if [ "$UI_DIR_EXPLICIT" = "1" ]; then
-        return 0
-    fi
-    if [ -d "/var/apps" ] && [ -d "/usr/trim" ]; then
-        for d in /var/apps/*/target/system/dashboard-ui; do
-            if [ -f "$d/$INDEX_FILE" ]; then
-                UI_DIR="$d"
-                BACKUP_DIR="$d/.plugin_backups"
-                IS_FNOS_NATIVE=1
-                return 0
-            fi
-        done
-    fi
-    return 1
-}
-
 # Configure custom path
 configure_custom_path() {
     echo ""
@@ -195,8 +170,6 @@ configure_custom_path() {
         if [ -n "$custom_path" ]; then
             UI_DIR="$custom_path"
             BACKUP_DIR="${custom_path}/.plugin_backups"
-            UI_DIR_EXPLICIT=1
-            IS_FNOS_NATIVE=0
             print_success "Custom path set: $UI_DIR"
         fi
     fi
@@ -204,13 +177,6 @@ configure_custom_path() {
 
 check_environment() {
     print_info "Checking environment..."
-
-    # Auto-detect the fnOS native path
-    if detect_ui_dir; then
-        if [ "$IS_FNOS_NATIVE" = "1" ]; then
-            print_success "Detected fnOS native Emby application"
-        fi
-    fi
     
     # Check UI directory
     if [ ! -d "$UI_DIR" ]; then
@@ -229,9 +195,6 @@ check_environment() {
     # Check write permission
     if [ ! -w "$UI_DIR" ]; then
         print_error "No write permission: $UI_DIR"
-        if [ "$IS_FNOS_NATIVE" = "1" ]; then
-            print_info "The fnOS native application directory requires root; run this script with sudo"
-        fi
         return 1
     fi
     
@@ -356,14 +319,6 @@ restore_backup() {
 
 # ========================== Plugin Operations ==========================
 
-# fnOS native note: app upgrades reset the target directory, so plugins must be reinstalled
-print_fnos_upgrade_note() {
-    if [ "$IS_FNOS_NATIVE" = "1" ]; then
-        echo ""
-        print_warning "fnOS note: upgrading Emby in App Center resets the program directory; rerun this script afterward"
-    fi
-}
-
 # Validate plugin IDs and normalize comma/space-separated input to a space-separated list
 normalize_plugin_ids() {
     local raw="$1"
@@ -397,7 +352,6 @@ install_selected() {
         install_plugin "$id" || return 1
     done
     print_success "Selected plugins installed! Refresh the Emby web page to apply."
-    print_fnos_upgrade_note
 }
 
 # Non-interactive uninstall of selected plugins
@@ -413,7 +367,6 @@ uninstall_selected() {
         uninstall_plugin "$id" || return 1
     done
     print_success "Selected plugins uninstalled! Refresh the Emby web page to apply."
-    print_fnos_upgrade_note
 }
 
 # Get plugin attribute
@@ -703,7 +656,6 @@ install_menu() {
     
     echo ""
     print_success "Installation completed! Refresh Emby web page to take effect."
-    print_fnos_upgrade_note
 }
 
 # Uninstall menu
@@ -748,7 +700,6 @@ uninstall_menu() {
     
     echo ""
     print_success "Uninstallation completed! Refresh Emby web page to take effect."
-    print_fnos_upgrade_note
 }
 
 # Backup management menu
@@ -847,9 +798,6 @@ main_menu() {
                     print_error "Invalid path configuration, restored to default"
                     UI_DIR="/system/dashboard-ui"
                     BACKUP_DIR="/system/dashboard-ui/.plugin_backups"
-                    UI_DIR_EXPLICIT=0
-                    IS_FNOS_NATIVE=0
-                    detect_ui_dir
                 fi
                 ;;
             5) show_help ;;
@@ -882,8 +830,6 @@ show_usage() {
     echo "  --use-mirror         Use domestic mirror"
     echo ""
     echo "Plugin IDs: $PLUGIN_LIST"
-    echo "fnOS native: automatically detects /var/apps/*/target/system/dashboard-ui on the fnOS host;"
-    echo "             run with sudo. App upgrades reset plugins; rerun this script afterward."
     echo ""
     echo "Interactive mode: $0"
 }
@@ -917,7 +863,6 @@ main() {
                 if [ -n "$1" ]; then
                     UI_DIR="$1"
                     BACKUP_DIR="${1}/.plugin_backups"
-                    UI_DIR_EXPLICIT=1
                     print_info "Using custom path: $UI_DIR"
                 else
                     print_error "--ui-dir requires a path argument"
@@ -971,11 +916,6 @@ main() {
     # Environment check
     if ! check_environment; then
         exit 1
-    fi
-
-    # Warn when fnOS native mode is not running as root
-    if [ "$IS_FNOS_NATIVE" = "1" ] && [ "$(id -u)" != "0" ]; then
-        print_warning "Not running as root: fnOS native app files may not be writable, rerun with sudo"
     fi
     
     # Switch to UI directory

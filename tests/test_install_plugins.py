@@ -61,19 +61,9 @@ class InstallerTest(unittest.TestCase):
 class ShellTests(InstallerTest):
     scripts = ('install_plugins.sh', 'install_plugins_en.sh')
 
-    def run_shell(self, script, args=(), setup='', code=None, stdin=None, fnos=False):
+    def run_shell(self, script, args=(), setup='', code=None, stdin=None):
         source = (ROOT / script).read_text()
         source = source.rstrip().removesuffix('main "$@"')
-        if fnos:
-            fnos_temp = tempfile.TemporaryDirectory(prefix='emby-fnos-')
-            self.addCleanup(fnos_temp.cleanup)
-            apps = Path(fnos_temp.name) / 'var/apps'
-            trim = Path(fnos_temp.name) / 'usr/trim'
-            native = apps / 'emby/target/system/dashboard-ui'
-            native.mkdir(parents=True, exist_ok=True)
-            trim.mkdir(parents=True, exist_ok=True)
-            (native / 'index.html').write_text(HTML)
-            source = source.replace('/var/apps', str(apps)).replace('/usr/trim', str(trim))
         library = self.root / 'functions.sh'
         library.write_text(source)
         env = dict(os.environ)
@@ -186,13 +176,14 @@ class ShellTests(InstallerTest):
                 self.assertTrue((self.ui / 'home.js').exists())
                 self.assertNotIn('externalPlayer.js', self.index.read_text())
 
-    def test_fnos_menu_custom_path_overrides_detection(self):
+    def test_menu_custom_path_updates_ui_and_backup_directories(self):
         for script in self.scripts:
             with self.subTest(script=script):
-                code = 'detect_ui_dir\nconfigure_custom_path\ncheck_environment || exit 1\nprintf "FINAL=%s\\n" "$UI_DIR"'
-                result = self.run_shell(script, code=code, stdin='y\n' + str(self.ui) + '\n', fnos=True)
+                code = 'configure_custom_path\ncheck_environment || exit 1\nprintf "FINAL=%s\\nBACKUP=%s\\n" "$UI_DIR" "$BACKUP_DIR"'
+                result = self.run_shell(script, code=code, stdin='y\n' + str(self.ui) + '\n')
                 self.assertEqual(0, result.returncode, result.stderr)
                 self.assertIn('FINAL=' + str(self.ui) + '\n', result.stdout)
+                self.assertIn('BACKUP=' + str(self.ui / '.plugin_backups') + '\n', result.stdout)
 
 
 @unittest.skipUnless(PWSH, 'PowerShell not installed; set PWSH to enable')
